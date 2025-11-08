@@ -1,0 +1,49 @@
+version: 0.2
+
+env:
+  variables:
+    APP_ROOT: "webapi"
+    API_PROJECT_FILE: "API/API.csproj"
+
+phases:
+  install:
+    commands:
+      - echo "Removing existing dotnet directory and conflicting global.json..."
+      - rm -rf /root/.dotnet
+      - rm -f /codebuild/global.json
+
+      - echo "Installing dependencies for .NET on Amazon Linux..."
+      - yum install -y libunwind
+
+      - echo "Downloading dotnet-install.sh script..."
+      - curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+      - chmod +x ./dotnet-install.sh
+
+      - echo "Installing .NET 9.0 SDK to /opt/dotnet..."
+      - ./dotnet-install.sh --channel 9.0 --install-dir /opt/dotnet
+
+      - echo "Force-creating system-wide symlink for dotnet executable..."
+      - ln -sf /opt/dotnet/dotnet /usr/local/bin/dotnet
+
+      - echo "Finished installing .NET version $(dotnet --version)"
+
+  pre_build:
+    commands:
+      - echo "Restoring dependencies..."
+      - dotnet restore "$APP_ROOT/$API_PROJECT_FILE"
+
+  build:
+    commands:
+      - echo "Build started on $(date)"
+      - dotnet build "$APP_ROOT/$API_PROJECT_FILE" --configuration Release --no-restore
+
+  post_build:
+    commands:
+      - echo "Publishing application..."
+      - dotnet publish "$APP_ROOT/$API_PROJECT_FILE" --configuration Release --no-build --no-restore --output "$APP_ROOT/publish"
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: "$APP_ROOT/publish"
+
