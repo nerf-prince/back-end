@@ -64,8 +64,10 @@ public class QuestionsController : ControllerBase
     [ProducesResponseType(typeof(List<ExamQuestion>), StatusCodes.Status200OK)]
     public ActionResult<List<ExamQuestion>> GetByDifficulty(string difficulty)
     {
-        _logger.LogInformation("Getting questions with difficulty: {Difficulty}", difficulty);
-        var questions = _examService.GetQuestionsByDifficulty(difficulty);
+        // Sanitize input to prevent log forging
+        var sanitizedDifficulty = difficulty?.Replace("\n", "").Replace("\r", "") ?? string.Empty;
+        _logger.LogInformation("Getting questions with difficulty: {Difficulty}", sanitizedDifficulty);
+        var questions = _examService.GetQuestionsByDifficulty(difficulty ?? string.Empty);
         return Ok(questions);
     }
     
@@ -78,8 +80,10 @@ public class QuestionsController : ControllerBase
     [ProducesResponseType(typeof(List<ExamQuestion>), StatusCodes.Status200OK)]
     public ActionResult<List<ExamQuestion>> GetBySubject(string subject)
     {
-        _logger.LogInformation("Getting questions with subject: {Subject}", subject);
-        var questions = _examService.GetQuestionsBySubject(subject);
+        // Sanitize input to prevent log forging
+        var sanitizedSubject = subject?.Replace("\n", "").Replace("\r", "") ?? string.Empty;
+        _logger.LogInformation("Getting questions with subject: {Subject}", sanitizedSubject);
+        var questions = _examService.GetQuestionsBySubject(subject ?? string.Empty);
         return Ok(questions);
     }
     
@@ -107,7 +111,9 @@ public class QuestionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult<ExamQuestion> Create([FromBody] ExamQuestion question)
     {
-        _logger.LogInformation("Creating new exam question: {Title}", question.Title);
+        // Sanitize input to prevent log forging
+        var sanitizedTitle = question.Title?.Replace("\n", "").Replace("\r", "") ?? string.Empty;
+        _logger.LogInformation("Creating new exam question: {Title}", sanitizedTitle);
         
         if (string.IsNullOrWhiteSpace(question.Title) || string.IsNullOrWhiteSpace(question.Description))
         {
