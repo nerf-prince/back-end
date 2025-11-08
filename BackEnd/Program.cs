@@ -37,6 +37,13 @@ builder.Services
                 builder.Configuration["MongoDB:DatabaseName"] ?? "db",
                 builder.Configuration["MongoDB:ExamsCollectionName"] ?? "exams"));
 
+builder.Services
+    .AddScoped<SubmissionsCollection>(sp
+            => new(
+                sp.GetRequiredService<IMongoClient>(),
+                builder.Configuration["MongoDB:DatabaseName"] ?? "db",
+                builder.Configuration["MongoDB:SubmissionsCollectionName"] ?? "submissions"));
+
 var app = builder.Build();
 
 try

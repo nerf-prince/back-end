@@ -8,7 +8,6 @@ public class ExamDto
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
-    
     public Sub1Dto Sub1 { get; set; } = new();
     public Sub2Dto Sub2 { get; set; } = new();
     public Sub3Dto Sub3 { get; set; } = new();
