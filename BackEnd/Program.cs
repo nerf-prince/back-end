@@ -10,7 +10,6 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true
 );
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -24,12 +23,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddHealthChecks();
 
-// Configure MongoDB
 var connectionString = builder.Configuration["MongoDB:ConnectionString"];
 var settings = MongoClientSettings.FromConnectionString(connectionString);
 settings.ServerApi = new ServerApi(ServerApiVersion.V1);
 
-// Register MongoDB client as singleton
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(settings));
 
 builder.Services
@@ -41,7 +38,6 @@ builder.Services
 
 var app = builder.Build();
 
-// Test MongoDB connection
 try
 {
     var mongoClient = app.Services.GetRequiredService<IMongoClient>();
@@ -53,7 +49,6 @@ catch (Exception ex)
     Console.WriteLine($"MongoDB connection failed: {ex.Message}");
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
