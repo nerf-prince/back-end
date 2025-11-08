@@ -18,7 +18,7 @@ public class ExamDto
 
 public class Sub1Dto
 {
-    public ExDto Ex { get; set; } = new();
+    public List<ExDto> Ex { get; set; } = new();
 }
 
 public class ExDto
