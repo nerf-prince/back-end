@@ -1,41 +1,56 @@
+using MongoDB.Driver;
+using MongoDB.Bson;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "SmartHack Exam API",
+        Version = "v1",
+        Description = "API for managing exam documents in MongoDB"
+    });
+});
+
+// Configure MongoDB
+var connectionString = builder.Configuration["MongoDB:ConnectionString"];
+var settings = MongoClientSettings.FromConnectionString(connectionString);
+settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+
+// Register MongoDB client as singleton
+builder.Services.AddSingleton<IMongoClient>(new MongoClient(settings));
 
 var app = builder.Build();
+
+// Test MongoDB connection
+try
+{
+    var mongoClient = app.Services.GetRequiredService<IMongoClient>();
+    var result = mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+    Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"MongoDB connection failed: {ex.Message}");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartHack Exam API v1");
+        options.RoutePrefix = string.Empty; // Swagger UI at root
+    });
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
