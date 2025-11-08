@@ -10,6 +10,7 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true
 );
 
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
