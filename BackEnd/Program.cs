@@ -22,6 +22,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API for managing exam documents in MongoDB"
     });
 });
+builder.Services.AddHealthChecks();
 
 // Configure MongoDB
 var connectionString = builder.Configuration["MongoDB:ConnectionString"];
@@ -64,5 +65,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
