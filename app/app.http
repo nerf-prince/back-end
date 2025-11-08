@@ -1,6 +1,44 @@
 @app_HostAddress = http://localhost:5213
 
-GET {{app_HostAddress}}/weatherforecast/
+
+
+
+
+####
+# Get All Tests
+GET {{app_HostAddress}}/api/tests
 Accept: application/json
 
+
+
+# Get Test by ID
+GET {{app_HostAddress}}/api/tests/1
+Accept: application/json
+
+
+# Create Test
+POST {{app_HostAddress}}/api/tests
+Content-Type: application/json
+{
+    "name": "Sample Test",
+    "description": "This is a sample test description."
+}
+
+# Update Test
+PUT {{app_HostAddress}}/api/tests/1
+Content-Type: application/json
+{
+    "name": "Updated Test Name",
+    "description": "This is an updated test description."
+}
+
+
+# Delete Test
+DELETE {{app_HostAddress}}/api/tests/1
 ###
+
+
+
+
+####
+
