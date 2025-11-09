@@ -41,5 +41,18 @@ public class SubmissionsCollection(IMongoClient mongoClient,
         await _submissionCollection.InsertOneAsync(submission);
         return submission;
     }
+
+    public async Task<bool> UpdateScore(string submissionId, string fieldPath, int score)
+    {
+        // Convertește path-ul de la format cu / la format cu . pentru MongoDB
+        // ex: "Sub2/Ex2/Score" -> "Sub2.Ex2.Score" sau "Sub2/Ex1/a/Score" -> "Sub2.Ex1.a.Score"
+        var mongoPath = fieldPath.Replace("/", ".");
+        
+        var filter = Builders<SubmissionDto>.Filter.Eq(x => x.Id, submissionId);
+        var update = Builders<SubmissionDto>.Update.Set(mongoPath, score);
+        
+        var result = await _submissionCollection.UpdateOneAsync(filter, update);
+        return result.IsAcknowledged && result.ModifiedCount > 0;
+    }
 }
 

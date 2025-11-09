@@ -44,11 +44,42 @@ public class SubmissionController(
     }
 
     [HttpPost]
-    public async Task<ActionResult<SubmissionDto>> Create([FromBody] SubmissionDto submission)
+    public async Task<ActionResult<SubmissionDto>> Create([FromBody] CreateSubmissionDto createSubmission)
     {
+        // Map CreateSubmissionDto to SubmissionDto (MongoDB will generate the Id)
+        var submission = new SubmissionDto
+        {
+            UserId = createSubmission.UserId,
+            TestId = createSubmission.TestId,
+            Sub1 = createSubmission.Sub1,
+            Sub2 = createSubmission.Sub2,
+            Sub3 = createSubmission.Sub3
+        };
+        
         var createdSubmission = await submissionsCollection.Create(submission);
         await processingTopicClient.SendAsync(createdSubmission);
         return CreatedAtAction(nameof(GetById), new { id = createdSubmission.Id }, createdSubmission);
+    }
+
+    [HttpPatch("{id}/score")]
+    public async Task<ActionResult> UpdateScore(string id, [FromBody] UpdateScoreDto updateScore)
+    {
+        // Verifică dacă submission-ul există
+        var submission = await submissionsCollection.One(id);
+        if (submission == null)
+        {
+            return NotFound(new { message = "Submission not found" });
+        }
+
+        // Update doar scorul la path-ul specificat
+        var updated = await submissionsCollection.UpdateScore(id, updateScore.Path, updateScore.Score);
+        
+        if (!updated)
+        {
+            return StatusCode(500, new { message = "Failed to update score" });
+        }
+
+        return NoContent();
     }
 }
 
