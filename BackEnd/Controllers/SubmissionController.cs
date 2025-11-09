@@ -1,12 +1,15 @@
 using BackEnd.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using BackEnd.Collections;
+using BackEnd.Services;
 
 namespace BackEnd.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SubmissionController(SubmissionsCollection submissionsCollection) : ControllerBase
+public class SubmissionController(
+        SubmissionsCollection submissionsCollection,
+        ITopicProducer processingTopicClient) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<SubmissionDto>>> GetAll()
@@ -44,6 +47,7 @@ public class SubmissionController(SubmissionsCollection submissionsCollection) :
     public async Task<ActionResult<SubmissionDto>> Create([FromBody] SubmissionDto submission)
     {
         var createdSubmission = await submissionsCollection.Create(submission);
+        await processingTopicClient.SendAsync(createdSubmission);
         return CreatedAtAction(nameof(GetById), new { id = createdSubmission.Id }, createdSubmission);
     }
 }

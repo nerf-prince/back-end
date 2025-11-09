@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using BackEnd.Collections;
+using BackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,8 @@ var settings = MongoClientSettings.FromConnectionString(connectionString);
 settings.ServerApi = new ServerApi(ServerApiVersion.V1);
 
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(settings));
+builder.Services.AddScoped<ITopicProducer, SnsProducer>(_
+            => new(builder.Configuration["SnsTopicArn"] ?? ""));
 
 builder.Services
     .AddScoped<ExamsCollection>(sp
