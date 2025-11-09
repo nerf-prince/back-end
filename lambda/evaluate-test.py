@@ -1,35 +1,51 @@
 import json
-from google import genai
+import os
+import boto3
 
-client = genai.Client()
+sns_client = boto3.client('sns')
 
+def evaluation_handler(incoming_message):
+    try:
+        topic_arn = os.environ["OUTPUT_TOPIC_ARN"]
+    except KeyError:
+        print("Error: OUTPUT_TOPIC_ARN environment variable not set.")
+        raise 
 
-def evaluation_handler(message):
-    message = message['Sub3']['Ex1']
+    for k1, k2 in (
+        ('Sub2', 'Ex2'),
+        ('Sub2', 'Ex3'),
+        ('Sub3', 'Ex1'),
+        ('Sub3', 'Ex2'),
+        ('Sub3', 'Ex3'),
+    ):
+        try:
+            ex = incoming_message[k1][k2]
 
-    print("HERE REQUEST", message)
+            split_message = {
+                "path": f"{k1}/{k2}",
+                "ex": ex,
+            }
 
-    prompt = """
-        You will receive the answer of a student.
-        You are to grade that answer with an integer from 1 to 5
-        Output a brief explanation, then a blank line.
-        The last line should contain just a digit [1-5], that being the grade
-        and nothing more than that.
-    """
+            response = sns_client.publish(
+                TopicArn=topic_arn,
+                Message=json.dumps(split_message)
+            )
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=json.dumps(
-            {"prompt": prompt, "student_answer": message})
-    ).text
+            print(f"Published message for {k1}/{k2}. MessageId: {response['MessageId']}")
 
-    if not response:
-        return
-
-    print("HERE REASONING", response[:-1])
-    print("HERE GRADE", int(response[-1]))
+        except KeyError:
+            print(f"Warning: Key path {k1}/{k2} not found in incoming message. Skipping.")
+        except Exception as e:
+            print(f"Error publishing message for {k1}/{k2}: {e}")
+            pass
 
 
 def lambda_handler(event, _):
-    msg = json.loads(event['Records'][0]['Sns']['Message'])
-
-    evaluation_handler(msg)
+    for record in event['Records']:
+        msg = json.loads(record['Sns']['Message'])
+        evaluation_handler(msg)
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps('All messages processed and split successfully.')
+    }
