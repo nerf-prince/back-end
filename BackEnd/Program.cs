@@ -14,10 +14,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
@@ -68,6 +67,8 @@ catch (Exception ex)
     Console.WriteLine($"MongoDB connection failed: {ex.Message}");
 }
 
+app.UseCors("AllowFrontend");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -77,8 +78,6 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty; // Swagger UI at root
     });
 }
-
-app.UseCors("AllowFrontend");
 
 app.MapControllers();
 app.MapHealthChecks("/health");
