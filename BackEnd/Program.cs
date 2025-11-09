@@ -10,6 +10,17 @@ builder.Configuration.AddJsonFile(
     reloadOnChange: true
 );
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -66,6 +77,8 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty; // Swagger UI at root
     });
 }
+
+app.UseCors("AllowFrontend");
 
 app.MapControllers();
 app.MapHealthChecks("/health");
